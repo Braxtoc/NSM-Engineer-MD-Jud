@@ -75,3 +75,28 @@ suricata.yaml
  1. set range: `172.16.60.100`
  1. `172.16.60.254`
  1. web config : `yes`
+
+ ## Change configurations in GUI
+ 1.  login `username: PfSense`
+ `password: PfSense`
+ 1. set hostname
+ 1. override DNS
+ 1. uncheck stuff on WAN at bottom
+ 1. continue through to reload
+ 1. finish
+
+ ## Firewall
+ - select `firewall`
+ - select `rules`
+    - Action `Pass`
+    - address family `IPV4`
+    - Protocol `any`
+    - Source `network`
+        - 192.168.2.0/24
+
+---
+## Services
+- DNS Fowarder
+    - unceck `enable DNS fowarder`
+- Diagnostic
+  - Halt System `ok`     
