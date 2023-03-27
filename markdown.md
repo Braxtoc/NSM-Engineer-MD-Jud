@@ -51,16 +51,8 @@ suricata.yaml
 
 # Day 1
 ---
- ## Lab topology
- <img src="https://i.ytimg.com/vi/KEkrWRHCDQU/maxresdefault.jpg">
-
-- Edge router
-    - uplink
-    - Repo server
----
-## Suricata Install
-
-1. Install Suricata
-`sudo yum install suricata`
-1. Edit yaml
-```
+ ## PfSense
+ 1. Insert the Bootable OS device into the PfSense
+ 1. Boot into the device
+ 1. and initiate the install of the OS
+ 1. 
