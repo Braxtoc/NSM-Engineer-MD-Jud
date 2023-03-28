@@ -100,3 +100,56 @@ suricata.yaml
     - unceck `enable DNS fowarder`
 - Diagnostic
   - Halt System `ok`     
+
+
+---
+# Day 2
+
+- Edge router (facing workstations): 192.168.2.1
+- Edge router (downstream to cisco): 10.0.0.2
+- Cisco switch(port 24 to edge): 10.0.0.1
+- Cisco switch(physical connect to cisco): 10.0.60.1
+- PfSense: 172.16.60.1
+- Sensor: 172.16.60.100
+
+---
+## Sensor install
+
+1. install OS onto device w/ USB
+  - ``uefi usb 0``
+  - ``install centos 7``
+  - ``English``
+1. Network and hostname: eno1 (plugged into pfsense)
+  - Configure ipv4 to static address of sensor
+  - Configure ipv6 to ignore
+  - Set hostname: sg60.local.Lan
+1. Date and time: ETC & Coordinated universal time
+  - Network time
+1. Disable KDUMP
+1. Installation Destination
+  - clear thine partitions
+  - configure partitions
+    - /home : 50g
+    - /boot : default
+    - /boot/efi : default
+    - / : **blank for after volume group creation**
+    - swap : 4g
+    - /var/log : 50g
+    - /var : 50g
+    - /tmp : 5g
+    - /var/log/audit : 50g
+    - /var/tmp : 10g
+    - /data/stenographer : 500g
+    - /data/suricata : 25g
+    - /data/kafka : 100g
+    - /data/elasticsearch : **blank for after volume group creation**
+    - /data/fsf : 10g
+    - /data/zeek : 25g
+  - Configure volume groups
+    - 500 G , vg_os : set all partitions that aren't /Data
+    - 1 TB, vg_data : for /data partitions
+  - begin Installation
+  - Create a admin user : elastic123
+---
+
+##  
