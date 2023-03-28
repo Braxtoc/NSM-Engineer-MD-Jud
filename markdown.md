@@ -176,4 +176,34 @@ suricata.yaml
   - ``yum makecache --disablerepo="*" --enablerepo=local*``
   - ``yum update --disablerepo="*" --enablerepo=local*``
   - ``reboot``
-  
+1. SELinux
+  - ``sestatus`` checks the state
+
+---
+# Day 3
+## Sniffing Traffic
+1. Interface setup: enp5s0
+  - ``ethtool -k enp5s0`` shows if nic offloading is enabled
+  - ``curl -LO http://192.168.2.20:8080/interface_prep.sh`` into the home directory
+  - ``chmod +x interface_prep.sh`` turns off things
+  - `` ./inteface_prep.sh enp5s0``
+  - ``ethtool -k enp5s0``
+  - ``cd /sbin``
+  - ``curl -LO http://192.168.2.20:8080/ifup-local``
+  - ``chmod +x ifup-local``
+  - ``./ifup-local``
+  - ``cd /etc/sysconfig/network-scripts``
+  - ``vi ifup``
+  - at the end of the file <shift g> enter ``if [ -x /sbin ifup-local ]; then
+  /sbin/ifup-local ${DEVICE}
+  fi``
+  - ``vi ifcfg-enp5s0``
+    - BOOTPROTO=none
+    - IPV6_AUTOCONF=no
+    - IPV6_DEFROUTE=no
+    - IPV6_FAILURE_FATAL=no
+    - DEFROUTE=none
+    - ONBOOT=yes
+    - NM_CONTROLLER=no
+  - ``reboot``
+  - ``ethtool -k enp5s0``
