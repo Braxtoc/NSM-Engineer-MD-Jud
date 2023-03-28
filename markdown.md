@@ -150,6 +150,30 @@ suricata.yaml
     - 1 TB, vg_data : for /data partitions
   - begin Installation
   - Create a admin user : elastic123
+
+1. within the network scripts make sure IPV6 is disabled for eno1
+1. ``vi /etc/sysctl.conf``
+  - add to end of file ``net.ipv6.conf.all.disable_ipv6=1`` & ``net.ipv6.conf.default.disable_ipv6=1``
+1. ``/etc/hosts``
+  - comment out the second line
+1. ``systemctl restart network``
+  - or ``sysctl -p``
+
 ---
 
-##  
+## Sensor Configuration
+
+1. Set up Repos
+  - ``cd /etc/yum.repos.d``
+  - `` sudo rm -rf CentOS-*``
+  - Open browser and navigate to 192.168.2.20 to download local.repo
+  - ``curl -LO http://192.168.2.20:8080/local.repo``
+  - ``cat local.repo``
+  - ``yum makecache``
+  - ``yum list zeek`` test your repo
+  - ``yum update``
+  - ``systemctl reboot``
+  - ``yum makecache --disablerepo="*" --enablerepo=local*``
+  - ``yum update --disablerepo="*" --enablerepo=local*``
+  - ``reboot``
+  
