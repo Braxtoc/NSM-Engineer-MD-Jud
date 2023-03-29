@@ -158,7 +158,9 @@ suricata.yaml
   - comment out the second line
 1. ``systemctl restart network``
   - or ``sysctl -p``
-
+1. ``/etc/sysconfig/network-scripts/ifcfg-eno1``
+  - Change all IPV6 to "no"
+  - BOOTPROTO=yes
 ---
 
 ## Sensor Configuration
@@ -180,7 +182,7 @@ suricata.yaml
   - ``sestatus`` checks the state
 
 ---
-# Day 3
+# Day 3vi ifcfg-enp5s0
 ## Sniffing Traffic
 1. Interface setup: enp5s0
   - ``ethtool -k enp5s0`` shows if nic offloading is enabled
@@ -202,7 +204,7 @@ suricata.yaml
     - IPV6_AUTOCONF=no
     - IPV6_DEFROUTE=no
     - IPV6_FAILURE_FATAL=no
-    - DEFROUTE=none
+    - DEFROUTE=nonevi ifcfg-enp5s0
     - ONBOOT=yes
     - NM_CONTROLLER=no
   - ``reboot``
@@ -232,7 +234,7 @@ suricata.yaml
 1. ``stenoread 'host XXX.XXX.XXX.XXX' -nn 'src host xxx.xxx.xxx.xxx'``
 
 ---
-## Suricata
+## Suricatavi ifcfg-enp5s0
 
 1. ``yum install suricata``
 1. ``cd /etc/suricata``
@@ -257,4 +259,4 @@ suricata.yaml
 1. test rules ``curl -L0 192.168.2.20:8080/all-class-files.zip``
 1. ``cat eve.json | jq`` look at logs
 
---- 
+---
