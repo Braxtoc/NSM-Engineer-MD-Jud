@@ -156,11 +156,11 @@ suricata.yaml
   - add to end of file ``net.ipv6.conf.all.disable_ipv6=1`` & ``net.ipv6.conf.default.disable_ipv6=1``
 1. ``/etc/hosts``
   - comment out the second line
-1. ``systemctl restart network``
-  - or ``sysctl -p``
 1. ``/etc/sysconfig/network-scripts/ifcfg-eno1``
   - Change all IPV6 to "no"
   - BOOTPROTO=yes
+1. ``systemctl restart network``
+  - or ``sysctl -p``
 ---
 
 ## Sensor Configuration
@@ -199,7 +199,7 @@ suricata.yaml
   - at the end of the file <shift g> enter ``if [ -x /sbin ifup-local ]; then
   /sbin/ifup-local ${DEVICE}
   fi``
-  - ``vi ifcfg-enp5s0``
+  - ``vvi ifcfg-enp5s0i ifcfg-enp5s0``
     - BOOTPROTO=none
     - IPV6_AUTOCONF=no
     - IPV6_DEFROUTE=no
