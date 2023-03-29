@@ -207,3 +207,45 @@ suricata.yaml
     - NM_CONTROLLER=no
   - ``reboot``
   - ``ethtool -k enp5s0``
+
+---
+## Stenographer
+
+1. ``cd /etc/yum.repos.d``
+1. ``yum list stenographer``
+1. ``yum install stenogapher``
+1. ``cd /etc/stenographer``
+1. ``vi config``
+  - on line 3 modify "packets directory": ``"/data/stenographer/packets"``
+  - "IndexDirectory": ``"/data/stenographer/index"``
+  - "StenotypePath": ``"/bin/stenotype"``  Command to find ``which stenotype``
+  - "Interface": ``"enp5s0"``
+1. ``mkdir /data/stenographer/packets``
+1. ``mkdir /data/stenographer/index``
+1. ``cd /data/stenographer``
+1. `` cd /data ``
+1. ``chown -R stenographer:stenographer /data/stenographer``
+1. ``stenokeys.sh stenographer stenographer``
+1. ``systemctl start stenographer``
+1. ``systemctl status stenographer``
+1. ``systemctl enable stenographer``
+1. ``stenoread 'host XXX.XXX.XXX.XXX' -nn 'src host xxx.xxx.xxx.xxx'``
+
+---
+## Suricata
+
+1. ``yum install suricata``
+1. ``cd /etc/suricata``
+1. ``vi suricata.yaml``
+  - line 56: ``default-log-dir: /data/suricata``
+  - line 60: ``enabled: no``
+  - line 76: ``enabled: no``
+  - line 404: ``no``
+  - line 557: ``enabled: no``
+  - line 580: ``interface:enp5s0``
+  - line 582: ``threads: auto`` uncomment
+1. ``cd /etc/sysconfig``
+1. ``vi suricata``
+  - ``OPTIONS="--af-packet=enp5s0 --user suricata"``
+1. ``suricata-update add-source local-emerging-threats http://192.168.2.20:8080/emerging.rules.tar``
+1. ``suricata-update``
