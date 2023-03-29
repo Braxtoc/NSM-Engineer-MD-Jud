@@ -249,3 +249,12 @@ suricata.yaml
   - ``OPTIONS="--af-packet=enp5s0 --user suricata"``
 1. ``suricata-update add-source local-emerging-threats http://192.168.2.20:8080/emerging.rules.tar``
 1. ``suricata-update``
+1. ``cd /data``
+1. ``chown -R suricata: /data/suricata``
+1. ``systemctl start suricata``
+1. ``systemctl enable suricata``
+1. ``systemctl status suricata``
+1. test rules ``curl -L0 192.168.2.20:8080/all-class-files.zip``
+1. ``cat eve.json | jq`` look at logs
+
+--- 
