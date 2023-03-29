@@ -204,7 +204,7 @@ suricata.yaml
     - IPV6_AUTOCONF=no
     - IPV6_DEFROUTE=no
     - IPV6_FAILURE_FATAL=no
-    - DEFROUTE=nonevi ifcfg-enp5s0
+    - DEFROUTE=none
     - ONBOOT=yes
     - NM_CONTROLLER=no
   - ``reboot``
