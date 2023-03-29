@@ -199,7 +199,7 @@ suricata.yaml
   - at the end of the file <shift g> enter ``if [ -x /sbin ifup-local ]; then
   /sbin/ifup-local ${DEVICE}
   fi``
-  - ``vvi ifcfg-enp5s0i ifcfg-enp5s0``
+  - ``vi ifcfg-enp5s0``
     - BOOTPROTO=none
     - IPV6_AUTOCONF=no
     - IPV6_DEFROUTE=no
