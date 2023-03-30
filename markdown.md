@@ -182,7 +182,7 @@ suricata.yaml
   - ``sestatus`` checks the state
 
 ---
-# Day 3vi ifcfg-enp5s0
+# Day 3
 ## Sniffing Traffic
 1. Interface setup: enp5s0
   - ``ethtool -k enp5s0`` shows if nic offloading is enabled
@@ -234,7 +234,7 @@ suricata.yaml
 1. ``stenoread 'host XXX.XXX.XXX.XXX' -nn 'src host xxx.xxx.xxx.xxx'``
 
 ---
-## Suricatavi ifcfg-enp5s0
+## Suricata
 
 1. ``yum install suricata``
 1. ``cd /etc/suricata``
@@ -256,7 +256,61 @@ suricata.yaml
 1. ``systemctl start suricata``
 1. ``systemctl enable suricata``
 1. ``systemctl status suricata``
-1. test rules ``curl -L0 192.168.2.20:8080/all-class-files.zip``
+1. test rules ``curl -LO 192.168.2.20:8080/all-class-files.zip``
 1. ``cat eve.json | jq`` look at logs
 
 ---
+# Day 4
+## zeek
+zeek -Cr [pcap file]
+
+1. ``yum install zeek zeek-plugin-kafka zeek-plugin-af_packet``
+1. ``vi /etc/zeek/networks.cfg``
+1. ``vi /etc/zeek/zeekctl.cfg``
+  - line 67: ``LogDir = /data/zeek``
+  - line 76: ``lb_custom.InterfacePrefix=af_packet::``
+1. ``vi /etc/zeek/node.cfg``
+  - line 8-11 comment router
+  - line 16-32 uncomment
+  - line 20-23
+    - add line under host=localhost ``pin_cpus=1``
+  - line 32: ``interface=enp5s0``
+  - after line 32 add ``lb_method=custom``
+  - after line 33 add ``lb_procs=2``
+  - after line 34 add ``pin_cpus=2,3``
+  - after line 35 add ``env_vars=fanout_id=77``
+1. ``mkdir /usr/share/zeek/site/scripts``
+1. ``cd /usr/share/zeek/site/scripts``
+1. ``curl -LO https://192.168.2.20:8080/zeek_scripts/afpacket.zeek``
+1. ``curl -LO https://192.168.2.20:8080/zeek_scripts/extension.zeek``
+1. `` vi /usr/share/zeek/site/local.zeek``
+  - end of file `` @load ./scripts/afpacket.zeek``
+  - end of file `` @load ./scripts/extension.zeek``
+1. ``cd /data``
+1. `` chown -R zeek: /data/zeek``
+1. `` chown -R zeek: /etc/zeek``
+1. `` chown -R zeek: /usr/share/zeek``
+1. `` chown -R zeek: /usr/bin/zeek``
+1. `` chown -R zeek: /usr/bin/capstats``
+1. `` chown -R zeek: /var/spool/zeek ``
+1. `` /sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/zeek ``
+1. `` /sbin/setcap cap_net_raw,cap_net_admin=eip /usr/bin/capstats ``
+1. `` getcap /usr/bin/zeek``
+1. `` getcap /usr/bin/capstats``
+1. `` vi /etc/systemd/system/zeek.service``
+  - [Unit]
+  - Description=Zeek Network Analysis Engine
+  - After=network.target
+  -
+  - [Service]
+  - Type=forking
+  - User=zeek
+  - ExecStart=/usr/bin/zeekctl deploy
+  - ExecStop=/usr/bin/zeekctl stop
+  -
+  - [Install]
+  - WantedBy=multi-user.target
+1. ``systemctl daemon-reload``
+1.
+1. ``systemctl start zeek``
+1.
