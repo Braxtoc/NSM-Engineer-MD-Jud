@@ -312,7 +312,72 @@ zeek -Cr [pcap file]
   - WantedBy=multi-user.target
 1. ``systemctl daemon-reload``
 1. ``systemctl start zeek``
+1. ``systemctl enable zeek``
 
 ---
-## Kafka
-1. 
+## Kafka/Zookeeper
+1. ``yum install kafka zookeeper``
+1. 'situation awareness' ``vi /etc/zookeeper/zoo.cfg``
+1. ``systemctl start zookeeper``
+1. ``systemctl enable zookeeper``
+1. ``vi /etc/kafka/server.properties``
+  - line 31 uncomment: ``listeners=PLAINTEXT://172.16.60.100:9092``
+  - line 36 uncomment: ``advertised.listeners=PLAINTEXT://172.16.60.100:9092``
+  - line 60: ``log.dirs=/data/kafka``
+  - line 65: ``num.partitions=3``
+  - line 107: ``log.retention.bytes=90000000000``
+  - line 123: ``zookeeper.connect=127.0.0.1:2181``
+1. ``chown -R kafka: /data/kafka``
+1. ``firewall-cmd --add-port=9092/tcp --permanent``
+1. ``firewall-cmd --add-port=2181/tcp --permanent``
+1. ``firewall-cmd --reload``
+1. ``systemctl start kafka``
+1. ``systemctl enable kafka``
+1. ``ss -lnt``
+1. ``cd /usr/share/zeek/site/scripts``
+1. ``curl -LO http://192.168.2.20/8080/zeek_scripts/kafka.zeek``
+1. `` vi /usr/share/zeek/site/scripts``
+  - line 7: ``["metadata.broker.list"] = "172.16.60.100:9092");``
+1. ``vi /usr/share/zeek/site/local.zeek``
+  - end of file: ``@load ./scripts/kafka.zeek``
+1. ``systemctl restart zeek``
+1. ``/usr/share/kafka/bin/kafka-topics.sh --bootstrap-server 172.16.60.100:9092 --list``
+1. ``/usr/share/kafka/bin/kafka-topics.sh --bootstrap-server 172.16.60.100:9092 --describe --topic zeek-raw``
+1. ``/usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server 172.16.60.100:9092 --topic zeek-raw``
+
+---
+## fsf
+1. ``yum install fsf``
+1. ``vi /opt/fsf/fsf-server/conf/config.py``
+  - line 9: ``SCANNER_CONFIG = { 'LOG_PATH' : '/data/fsf/logs',``
+  - line 10: ``'YARA_PATH' : '/var/lib/yara-rules/rules.yara',``
+  - line 11: ``'PID_PATH' : '/run/fsf/fsf.pid',``
+  - line 12: ``'EXPORT_PATH' : '/data/fsf/archive',``
+  - line 18: ``SERVER_CONFIG = [ 'IP_ADDRESS' : "localhost",``
+1. ``cd /data``
+1. ``mkdir -p /data/fsf/{logs,archive}``
+1. ``chown -R fsf: /data/fsf``
+1. ``chmod -R 0755 /data/fsf``
+1. ``vi /opt/fsf/fsf-client/conf/config.py``
+  - just for SA
+1. ``vi /etc/systemd/system/fsf.service``
+  - [Unit]
+  - Description=File Scanning Framework (FSF-Server) Services
+  - After=network.target
+  -
+  - [Service]
+  - Type=forking
+  - User=fsf
+  - Group=fsf
+  - WorkingDirectory=/
+  - PIDFILE=/run/fsf/fsf.pid
+  - PermissionsStartOnly=true
+  - ExecStartPre=/bin/mkdir -p /run/fsf
+  - ExecStartPre=/bin/chown -R fsf:fsf /run/fsf
+  - ExecStart=/opt/fsf/fsf-server/main.py start
+  - ExecStop=/opt/fsf/fsf-server/main.py stop
+  - ExecReload=/opt/fsf/fsf-server/main.py restart
+  -
+  - [Install]
+  - WantedBy=multi-user.target
+1. ``systemctl start fsf``
