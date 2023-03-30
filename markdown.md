@@ -311,6 +311,8 @@ zeek -Cr [pcap file]
   - [Install]
   - WantedBy=multi-user.target
 1. ``systemctl daemon-reload``
-1.
 1. ``systemctl start zeek``
-1.
+
+---
+## Kafka
+1. 
