@@ -381,3 +381,4 @@ zeek -Cr [pcap file]
   - [Install]
   - WantedBy=multi-user.target
 1. ``systemctl start fsf``
+1. ``systemctl status fsf``
