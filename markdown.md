@@ -382,3 +382,14 @@ zeek -Cr [pcap file]
   - WantedBy=multi-user.target
 1. ``systemctl start fsf``
 1. ``systemctl status fsf``
+1. ``/opt/fsf/fsf-client/fsf_client.py --full <filename>``
+1. ``mkdir /data/zeek/extracted_files``
+1. `` chown -R zeek: /data/zeek/extracted_files``
+1. `` chmod -R 0755 /data/zeek/extracted_files``
+1. `` vi /usr/share/zeek/site/scripts/extract_files.zeek``
+  - @load /usr/share/zeek/policy/frameworks/files/extract-all-files.zeek
+  - redef FileExtract::prefix = "/data/zeek/extracted_files/";
+  - redef FileExtract::default_limit = 1048576000;
+1. ``vi /usr/share/zeek/site/local.zeek``
+  - end of file: ``@load ./scripts/extract_files.zeek``
+1. ``systemctl restart zeek`` 
