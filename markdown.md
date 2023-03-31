@@ -128,7 +128,7 @@ suricata.yaml
 1. Disable KDUMP
 1. Installation Destination
   - clear thine partitions
-  - configure partitions
+  - configure partitionsyum install stenogapher
     - /home : 50g
     - /boot : default
     - /boot/efi : default
@@ -196,9 +196,10 @@ suricata.yaml
   - ``./ifup-local``
   - ``cd /etc/sysconfig/network-scripts``
   - ``vi ifup``
-  - at the end of the file <shift g> enter ``if [ -x /sbin ifup-local ]; then
-  /sbin/ifup-local ${DEVICE}
-  fi``
+  - at the end of the file <shift g> enter if
+    - [ -x /sbin ifup-local ]; then
+    - ...../sbin/ifup-local ${DEVICE}
+    - fi
   - ``vi ifcfg-enp5s0``
     - BOOTPROTO=none
     - IPV6_AUTOCONF=no
@@ -215,7 +216,7 @@ suricata.yaml
 
 1. ``cd /etc/yum.repos.d``
 1. ``yum list stenographer``
-1. ``yum install stenogapher``
+1. ``yum install stenographer``
 1. ``cd /etc/stenographer``
 1. ``vi config``
   - on line 3 modify "packets directory": ``"/data/stenographer/packets"``
@@ -281,8 +282,8 @@ zeek -Cr [pcap file]
   - after line 35 add ``env_vars=fanout_id=77``
 1. ``mkdir /usr/share/zeek/site/scripts``
 1. ``cd /usr/share/zeek/site/scripts``
-1. ``curl -LO https://192.168.2.20:8080/zeek_scripts/afpacket.zeek``
-1. ``curl -LO https://192.168.2.20:8080/zeek_scripts/extension.zeek``
+1. ``curl -LO http://192.168.2.20:8080/zeek_scripts/afpacket.zeek``
+1. ``curl -LO http://192.168.2.20:8080/zeek_scripts/extension.zeek``
 1. `` vi /usr/share/zeek/site/local.zeek``
   - end of file `` @load ./scripts/afpacket.zeek``
   - end of file `` @load ./scripts/extension.zeek``
@@ -335,7 +336,7 @@ zeek -Cr [pcap file]
 1. ``systemctl enable kafka``
 1. ``ss -lnt``
 1. ``cd /usr/share/zeek/site/scripts``
-1. ``curl -LO http://192.168.2.20/8080/zeek_scripts/kafka.zeek``
+1. ``curl -LO http://192.168.2.20:8080/zeek_scripts/kafka.zeek``
 1. `` vi /usr/share/zeek/site/scripts``
   - line 7: ``["metadata.broker.list"] = "172.16.60.100:9092");``
 1. ``vi /usr/share/zeek/site/local.zeek``
@@ -392,4 +393,11 @@ zeek -Cr [pcap file]
   - redef FileExtract::default_limit = 1048576000;
 1. ``vi /usr/share/zeek/site/local.zeek``
   - end of file: ``@load ./scripts/extract_files.zeek``
-1. ``systemctl restart zeek`` 
+1. ``systemctl restart zeek``
+1. `` cd /usr/share/zeek/site/scripts``
+1. ``curl -L -O http://192.168.2.20:8080/zeek_scripts/fsf.zeek``
+1. ``vi /usr/share/zeek/site/local.zeek``
+  - line 10 : changed to extracted_files
+1. `` vi /usr/share/zeek/site/local.zeek``
+  - end of file: ``@load ./scripts/fsf.zeek``
+1. ``systemctl restart zeek``
