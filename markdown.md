@@ -352,7 +352,7 @@ zeek -Cr [pcap file]
 1. ``vi /opt/fsf/fsf-server/conf/config.py``
   - line 9: ``SCANNER_CONFIG = { 'LOG_PATH' : '/data/fsf/logs',``
   - line 10: ``'YARA_PATH' : '/var/lib/yara-rules/rules.yara',``
-  - line 11: ``'PID_PATH' : '/run/fsf/fsf.pid',``
+  - line 11: ``'PID_Path' : '/run/fsf/fsf.pid',``
   - line 12: ``'EXPORT_PATH' : '/data/fsf/archive',``
   - line 18: ``SERVER_CONFIG = [ 'IP_ADDRESS' : "localhost",``
 1. ``cd /data``
