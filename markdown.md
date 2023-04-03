@@ -354,7 +354,9 @@ zeek -Cr [pcap file]
   - line 10: ``'YARA_PATH' : '/var/lib/yara-rules/rules.yara',``
   - line 11: ``'PID_Path' : '/run/fsf/fsf.pid',``
   - line 12: ``'EXPORT_PATH' : '/data/fsf/archive',``
-  - line 18: ``SERVER_CONFIG = [ 'IP_ADDRESS' : "localhost",``
+  - line 18: ``SERVER_CONFIG = [ 'IP_ADDRESS' : "172.16.60.100",``
+1. ``vi /opt/fsf/fsf-client/conf/config.py``
+  - line 9: change to sensor ip
 1. ``cd /data``
 1. ``mkdir -p /data/fsf/{logs,archive}``
 1. ``chown -R fsf: /data/fsf``
@@ -371,7 +373,7 @@ zeek -Cr [pcap file]
   - User=fsf
   - Group=fsf
   - WorkingDirectory=/
-  - PIDFILE=/run/fsf/fsf.pid
+  - PIDFile=/run/fsf/fsf.pid
   - PermissionsStartOnly=true
   - ExecStartPre=/bin/mkdir -p /run/fsf
   - ExecStartPre=/bin/chown -R fsf:fsf /run/fsf
@@ -396,8 +398,124 @@ zeek -Cr [pcap file]
 1. ``systemctl restart zeek``
 1. `` cd /usr/share/zeek/site/scripts``
 1. ``curl -L -O http://192.168.2.20:8080/zeek_scripts/fsf.zeek``
-1. ``vi /usr/share/zeek/site/local.zeek``
+1. ``vi /usr/share/zeek/site/fsf.zeek``
   - line 10 : changed to extracted_files
 1. `` vi /usr/share/zeek/site/local.zeek``
   - end of file: ``@load ./scripts/fsf.zeek``
 1. ``systemctl restart zeek``
+
+---
+## Elasticsearch
+
+1. `` yum install elasticsearch-7.8.1``
+1. ``chown elasticsearch: /data/elasticsearch``
+1.  `` vi /etc/elasticsearch/elasticsearch.yml``
+  - line 17 (uncomment): ``cluster.name: sg-60-cluster``
+  - line 23 (uncomment): ``node.name: sg-60-node``
+  - line 33: `` path.data: /data/elasticsearch ``
+  - line 43: uncomment
+  - line 55: ``network.host: _eno1_``
+  - line 59: uncomment
+  - line 68 (uncomment): ``discovery.seed_hosts: [172.16.60.100]``
+  - line 72 (uncomment): ``cluster.initial_master_nodes: [172.16.60.100]``
+  - > OR
+  - line 68 add: ``discovery.type: single-node``
+  - line 71 & line 75: comment out
+1. `` mkdir -p /usr/lib/systemd/system/elasticsearch.service.d``
+1. `` vi /usr/lib/systemd/system/elasticsearch.service.d/override.conf``
+  - [Service]
+  - LimitMEMLOCK=infinity
+1. ``chmod 755 /usr/lib/systemd/system/elasticsearch.service.d``
+1. `` chmod 644 /usr/lib/systemd/system/elasticsearch.service.d/override.conf``
+1. ``systemctl daemon-reload``
+1. ``systemctl start elasticsearch``
+1. ``systemctl enable elasticsearch``
+1. `` vi /etc/elasticsearch/jvm.options``
+ - line 22: ``-Xms4g``
+ - line 23: ``-Xms4g``
+1. ``systemctl restart elasticsearch``
+1. ``ss -lnt`` (check for binding)
+1. ``firewall-cmd --add-port={9200,9300}/tcp --permanent``
+1. ``firewall-cmd --reload``
+1. ``curl localhost:9200``
+1. ``curl localhost:9200/_cat/nodes``
+
+---
+## Kibana
+1. `` yum install kibana-7.8.1``
+1. `` vi /etc/kibana/kibana.yml``
+  - line 7 (uncomment): ``server.host: "172.16.60.100"``
+  - line 28: uncomment
+1. ``systemctl start kibana``
+1. ``systemctl enable kibana``
+1. ``firewall-cmd --add-port=5601/tcp --permanent``
+1. ``firewall-cmd --reload``
+1. in browser ``http://172.16.60.100:5601``
+1. ``cd /admin/home``
+1. ``curl -LO http://192.168.2.20:8080/ecskibana.tar.gz``
+1. `` tar -zxvf ecskibana.tar.gz``
+1. `` cd ecskibana``
+1. ``./import-index-templates.sh``
+1. Dev tools in Kibana
+  - ``GET _cat/templates``
+  - ``GET _cat/templates?v&s=name``
+  - ``GET _cat/templates/ecs*``
+  - ``GET _template/default``
+---
+## Filebeats
+1. ``yum install filebeat-7.8.1``
+1. ``cd /etc/filbeat``
+1. ``mv /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.bk``
+1. ``curl -LO 192.168.2.20:8080/filebeat.yml``
+1. ``vi /etc/filebeat/filebeat.yml``
+  - after line 10:
+    - "- type: log"
+    - enabled: true
+    - paths:
+    -   - /data/fsf/logs/rockout.log
+    - json.keys_under_root: true
+    - fields:
+    -    kafka_topic: fsf-raw
+    - fields_under_root: true
+  - line 22: ``hosts: ["172.16.60.100:9092"]``
+1. ``systemast 24 hoursctl start filebeat``
+1. ``/usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server 172.16.60.100:9092 --topic fsf-raw --from-beginning``
+1. ``systemctl enable filebeat``
+
+---
+## Logstash
+1. ``yum install logstash-7.8.1``
+1. ``cd /etc/logstash``    - line 8: ``bootstrap_servers => "172.16.60.100:9092"``
+1. ``curl -LO 192.168.2.20:8080/logstash.tar``
+1. ``tar -xvf logstash.tar``
+1. ``cd conf.d``
+1. ``vi logstash-100-input-kafka-zeek.conf``
+    - line 8: ``bootstrap_servers => "172.16.60.100:9092"``
+1. ``vi logstash-100-input-kafka-suricata.conf``
+    - line 8: ``bootstrap_servers => "172.16.60.100:9092"``
+1. ``vi logstash-100-input-kafka-fsf.conf``
+    - line 8: ``bootstrap_servers => "172.16.60.100:9092"``
+1. ``vi logstash-9999-output-elasticsearch.conf``
+    - replace all 127.0.0.1 with senor ip: 172.16.60.100:9092
+      - in vi command mode ``%s/127.0.0.1/172.16.60.100``
+    - Line 2: comment out
+1. ``systemctl start logstash``
+1. ``systemctl enable logstash``
+1. ``cat /var/log/logstash/logstash-plain.log | tail -10``
+1. ``vi /etc/kibana/kibana.yaml``
+  - line 28: ``elasticsearch.hosts: ["http://172.16.60.100:9200"]``
+1. ``systemctl restart {logstash,kibana}``
+1. on kibana go to index patterns
+    - ``create index pattern``
+       - name ``ecs-suricata-*``
+       - time filter: ``@timestamp``
+       - ``create``
+    - ``create index pattern``
+       - name ``ecs-zeek-*``
+       - time filter: ``@timestamp``
+      - ``create``
+    - ``create index pattern``
+          - name ``fsf-*``
+          - time filter: ``@timestamp``
+          - ``create``
+1. vi /opt/fsf/
