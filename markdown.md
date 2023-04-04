@@ -513,9 +513,8 @@ zeek -Cr [pcap file]
     - ``create index pattern``
        - name ``ecs-zeek-*``
        - time filter: ``@timestamp``
-      - ``create``
+       - ``create``
     - ``create index pattern``
-          - name ``fsf-*``
-          - time filter: ``@timestamp``
-          - ``create``
-1. vi /opt/fsf/
+       - name ``fsf-*``
+       - time filter: ``@timestamp``
+       - ``create``
