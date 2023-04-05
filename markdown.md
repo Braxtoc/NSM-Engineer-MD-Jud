@@ -196,8 +196,8 @@ suricata.yaml
   - ``./ifup-local``
   - ``cd /etc/sysconfig/network-scripts``
   - ``vi ifup``
-  - at the end of the file <shift g> enter if
-    - [ -x /sbin ifup-local ]; then
+  - at the end of the file <shift g> enter
+    - if [ -x /sbin/ifup-local ]; then
     - ...../sbin/ifup-local ${DEVICE}
     - fi
   - ``vi ifcfg-enp5s0``
@@ -219,7 +219,8 @@ suricata.yaml
 1. ``yum install stenographer``
 1. ``cd /etc/stenographer``
 1. ``vi config``
-  - on line 3 modify "packets directory": ``"/data/stenographer/packets"``
+  - on line cd /etc/sysconfig/network-scripts
+3 modify "packets directory": ``"/data/stenographer/packets"``
   - "IndexDirectory": ``"/data/stenographer/index"``
   - "StenotypePath": ``"/bin/stenotype"``  Command to find ``which stenotype``
   - "Interface": ``"enp5s0"``
@@ -405,7 +406,7 @@ zeek -Cr [pcap file]
 1. ``systemctl restart zeek``
 
 ---
-## Elasticsearch
+## Elasticscearch
 
 1. `` yum install elasticsearch-7.8.1``
 1. ``chown elasticsearch: /data/elasticsearch``
@@ -437,15 +438,15 @@ zeek -Cr [pcap file]
 1. ``ss -lnt`` (check for binding)
 1. ``firewall-cmd --add-port={9200,9300}/tcp --permanent``
 1. ``firewall-cmd --reload``
-1. ``curl localhost:9200``
-1. ``curl localhost:9200/_cat/nodes``
+1. ``curl 172.16.60.100:9200``
+1. ``curl 172.16.60.100:9200/_cat/nodes``
 
 ---
 ## Kibana
 1. `` yum install kibana-7.8.1``
 1. `` vi /etc/kibana/kibana.yml``
   - line 7 (uncomment): ``server.host: "172.16.60.100"``
-  - line 28: uncomment
+  - line 28: uncomment change to sensor ip
 1. ``systemctl start kibana``
 1. ``systemctl enable kibana``
 1. ``firewall-cmd --add-port=5601/tcp --permanent``
@@ -456,6 +457,7 @@ zeek -Cr [pcap file]
 1. `` tar -zxvf ecskibana.tar.gz``
 1. `` cd ecskibana``
 1. ``./import-index-templates.sh``
+  - change from local host to sensor ip
 1. Dev tools in Kibana
   - ``GET _cat/templates``
   - ``GET _cat/templates?v&s=name``
@@ -478,14 +480,14 @@ zeek -Cr [pcap file]
     -    kafka_topic: fsf-raw
     - fields_under_root: true
   - line 22: ``hosts: ["172.16.60.100:9092"]``
-1. ``systemast 24 hoursctl start filebeat``
+1. ``systemctl start filebeat``
 1. ``/usr/share/kafka/bin/kafka-console-consumer.sh --bootstrap-server 172.16.60.100:9092 --topic fsf-raw --from-beginning``
 1. ``systemctl enable filebeat``
 
 ---
 ## Logstash
 1. ``yum install logstash-7.8.1``
-1. ``cd /etc/logstash``    - line 8: ``bootstrap_servers => "172.16.60.100:9092"``
+1. ``cd /etc/logstash``    
 1. ``curl -LO 192.168.2.20:8080/logstash.tar``
 1. ``tar -xvf logstash.tar``
 1. ``cd conf.d``
@@ -518,3 +520,73 @@ zeek -Cr [pcap file]
        - name ``fsf-*``
        - time filter: ``@timestamp``
        - ``create``
+---
+## Logstash pipes
+1. ``systemctl stop logstash``
+1. ``cd /etc/logstash``
+1. ``vi pipeline.yml``
+1. ``mkdir my-pipeline``
+1. ``chown logstash: my-pipeline/``
+1. ``cd /my-pipeline``
+1. ``vi input.conf``
+  - input {
+  - generator {
+  - message => 'paste http example'
+  - count => 1
+  - }  
+  - }  
+1. ``vi filter.conf``
+  - filter {
+  - mutate {
+  - copy => { "[message]" => "[event][original]"}
+  - }
+  - json {
+  - source => "[message]"
+  - target => "[zeek][http]"
+  - remove_field => "[message]"
+  -   }
+  - mutate {
+  - copy => { "[@timestamp]" => "[event][created]"}
+  - }
+  - date {
+  - match => ["[zeek][http][ts]", "UNIX"  ]
+  - target => "[@timestamp]"
+  - remove_field => "[zeek][http][ts]"
+  - }
+  - mutate {
+  - rename => {
+  -  "[zeek][http][id.orig_h]" => "[source][address]"
+  -  "[zeek][http][id.orig_p]" => "[source][port]"
+  -  "[zeek][http][id.resp_h]" => "[destination][address]"
+  -  "[zeek][http][id.rest_p]" => "[destination][port]"
+  - }
+  - }
+  - mutate {
+  - copy => {
+  - "[source][address]"      => "[source][ip]"
+  - "[destination][address]" => "[destination][ip]"
+  - "[source][address]"      => "[client][ip]"
+  -  
+  - }
+  - copy => {
+  - "[source][destination]" => "[client][address]"
+  - "[destination][address]" => "[server][address]"
+  - "[source][port]" => "[client][port]"
+  - "[server][port]" => "[server][port]"
+  - }
+  - copy => {
+  - "[client][address]" => "[client][ip]"
+  - "[server][address]" => "[server][ip]"
+  - }  
+  - }
+  - }
+1. ``vi output.conf``
+  - output {
+  - stdout {}
+  - }
+1. ``vi pipelines.yml``
+  - comment out content
+  - add to end of file
+  -  "- pipeline.id:test" no quotes, do one space in
+  -  ``path.config: "/etc/logstash/my-pipeline/*.conf"``
+1. ``/usr/share/logstash/bin/logstash --path.settings /etc/logstash/``
